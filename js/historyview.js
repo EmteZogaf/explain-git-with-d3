@@ -293,14 +293,14 @@ define(['d3'], function () {
                     break;
                 }
 
-                var matchedTag = function() { 
+                var matchedTag = function() {
                     for (var j = 0; j < commit.tags.length; j++) {
                         var tag = commit.tags[j];
                         if (tag === ref) {
                             matchedCommit = commit;
                             return true;
                         }
-                        
+
                         if (tag.indexOf('[') === 0 && tag.indexOf(']') === tag.length - 1) {
                             tag = tag.substring(1, tag.length - 1);
                         }
@@ -360,7 +360,7 @@ define(['d3'], function () {
             svgContainer = container.append('div')
                 .classed('svg-container', true)
                 .classed('remote-container', this.isRemote);
-                
+
             svg = svgContainer.append('svg:svg');
 
             svg.attr('id', this.name)
@@ -417,7 +417,7 @@ define(['d3'], function () {
                 preventOverlap(commit, this);
             }
         },
-        
+
         _resizeSvg: function() {
             var ele = document.getElementById(this.svg.node().id);
             var container = ele.parentNode;
@@ -669,7 +669,8 @@ define(['d3'], function () {
         renderTags: function () {
             var view = this,
                 tagData = this._parseTagData(),
-                existingTags, newTags;
+                existingTags, newTags,
+                currentBranch = this.currentBranch;
 
             existingTags = this.tagBox.selectAll('g.branch-tag')
                 .data(tagData, function (d) { return d.name; });
@@ -707,6 +708,9 @@ define(['d3'], function () {
                     } else if (d.name.toUpperCase() === 'HEAD') {
                         classes += ' head-tag';
                     }
+                    if (d.name == currentBranch) {
+                        classes += " current-branch"
+                    }
                     return classes;
                 });
 
@@ -726,8 +730,8 @@ define(['d3'], function () {
             newTags.append('svg:text')
                 .text(function (d) {
                     if (d.name.indexOf('[') === 0 && d.name.indexOf(']') === d.name.length - 1)
-                        return d.name.substring(1, d.name.length - 1); 
-                    return d.name; 
+                        return d.name.substring(1, d.name.length - 1);
+                    return d.name;
                 })
                 .attr('y', function (d) {
                     return tagY(d, view) + 14;
@@ -736,6 +740,19 @@ define(['d3'], function () {
                     var commit = view.getCommit(d.commit);
                     return commit.cx;
                 });
+
+            this.tagBox.selectAll('g.branch-tag').attr('class', function(d) {
+                var cls = d3.select(this).attr('class').split(" "),
+                    currentBranchIndex = cls.indexOf('current-branch');
+                if (d.name == currentBranch) {
+                    if (currentBranchIndex < 0) {
+                        cls.push('current-branch');
+                    }
+                } else if (currentBranchIndex >= 0) {
+                    cls.splice(currentBranchIndex, 1);
+                }
+                return cls.join(' ');
+            });
 
             this._markBranchlessCommits();
         },
@@ -969,9 +986,9 @@ define(['d3'], function () {
                 while (branchStartCommit.parent !== currentCommit.id) {
                     branchStartCommit = this.getCommit(branchStartCommit.parent);
                 }
-                
+
                 branchStartCommit.isNoFFBranch = true;
-                
+
                 this.commit({parent2: mergeTarget.id, isNoFFCommit: true});
             } else if (this.isAncestor(currentCommit, mergeTarget)) {
                 this.fastForward(mergeTarget);

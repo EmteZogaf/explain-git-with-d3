@@ -134,7 +134,7 @@ span.cmd {
 
 .control-box input[type="text"] {
     position: absolute;
-    bottom: 0; 
+    bottom: 0;
     padding-left: 15px;
     color: #FFF;
     line-height: 14px;
@@ -225,6 +225,12 @@ text.message-label {
 g.branch-tag > rect {
 	fill: #FFCC66;
 	stroke: #CC9900;
+	stroke-width: 2;
+}
+
+g.branch-tag.current-branch > rect {
+	fill: #FFCC66;
+	stroke: #339900;
 	stroke-width: 2;
 }
 
