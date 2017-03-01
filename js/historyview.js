@@ -1,9 +1,9 @@
 define(['d3'], function () {
     "use strict";
 
-    var REG_MARKER_END = 'url(#triangle)',
-        MERGE_MARKER_END = 'url(#brown-triangle)',
-        FADED_MARKER_END = 'url(#faded-triangle)',
+    var REG_MARKER_END = 'url(#triangle-forward)',
+        MERGE_MARKER_END = 'url(#brown-triangle-forward)',
+        FADED_MARKER_END = 'url(#faded-triangle-forward)',
 
         preventOverlap,
         applyBranchlessClass,
@@ -52,11 +52,11 @@ define(['d3'], function () {
         });
 
         if (selection.classed('commit-pointer')) {
-            selection.attr('marker-end', function (d) {
+            selection.attr('marker-start', function (d) {
                 return d.branchless ? FADED_MARKER_END : REG_MARKER_END;
             });
         } else if (selection.classed('merge-pointer')) {
-            selection.attr('marker-end', function (d) {
+            selection.attr('marker-start', function (d) {
                 return d.branchless ? FADED_MARKER_END : MERGE_MARKER_END;
             });
         }
@@ -138,7 +138,7 @@ define(['d3'], function () {
             diffY = parent.cy - commit.cy,
             length = Math.sqrt((diffX * diffX) + (diffY * diffY));
 
-        return startCX - (view.pointerMargin * (diffX / length));
+        return startCX - (view.pointerMargin * 1.2 * (diffX / length));
     };
 
     // calculates the y1 point for commit pointer lines
@@ -151,7 +151,7 @@ define(['d3'], function () {
             diffY = parent.cy - startCY,
             length = Math.sqrt((diffX * diffX) + (diffY * diffY));
 
-        return startCY + (view.pointerMargin * (diffY / length));
+        return startCY + (view.pointerMargin * 1.2 * (diffY / length));
     };
 
     fixPointerStartPosition = function (selection, view) {
@@ -171,7 +171,7 @@ define(['d3'], function () {
             diffY = parent.cy - commit.cy,
             length = Math.sqrt((diffX * diffX) + (diffY * diffY));
 
-        return endCX + (view.pointerMargin * 1.2 * (diffX / length));
+        return endCX + (view.pointerMargin * (diffX / length));
     };
 
     py2 = function (commit, view, pp) {
@@ -183,7 +183,7 @@ define(['d3'], function () {
             diffY = endCY - commit.cy,
             length = Math.sqrt((diffX * diffX) + (diffY * diffY));
 
-        return endCY - (view.pointerMargin * 1.2 * (diffY / length));
+        return endCY - (view.pointerMargin * (diffY / length));
     };
 
     fixPointerEndPosition = function (selection, view) {
@@ -516,13 +516,13 @@ define(['d3'], function () {
                     return view.name + '-' + d.id + '-to-' + d.parent;
                 })
                 .classed('commit-pointer', true)
-                .call(fixPointerStartPosition, view)
-                .attr('x2', function () { return d3.select(this).attr('x1'); })
-                .attr('y2', function () {  return d3.select(this).attr('y1'); })
-                .attr('marker-end', REG_MARKER_END)
+                .call(fixPointerEndPosition, view)
+                .attr('x1', function () { return d3.select(this).attr('x2'); })
+                .attr('y1', function () {  return d3.select(this).attr('y2'); })
+                .attr('marker-start', REG_MARKER_END)
                 .transition()
                 .duration(500)
-                .call(fixPointerEndPosition, view);
+                .call(fixPointerStartPosition, view);
         },
 
         _renderMergePointers: function () {
@@ -558,21 +558,23 @@ define(['d3'], function () {
                 })
                 .classed('merge-pointer', true)
                 .attr('points', function (d) {
-                    var x1 = px1(d, view, 'parent2'),
-                        y1 = py1(d, view, 'parent2'),
-                        p1 = x1 + ',' + y1;
+                    var x2 = px2(d, view, 'parent2'),
+                    y2 = py2(d, view, 'parent2'),
+                    p2 = x2 + ',' + y2;
 
-                    return [p1, p1].join(' ');
+
+                    var points = [p2, p2];
+                    return points.join(' ');
                 })
-                .attr('marker-end', MERGE_MARKER_END)
+                .attr('marker-start', MERGE_MARKER_END)
                 .transition()
                 .duration(500)
                 .attr('points', function (d) {
                     var points = d3.select(this).attr('points').split(' '),
-                        x2 = px2(d, view, 'parent2'),
-                        y2 = py2(d, view, 'parent2');
+                    x1 = px1(d, view, 'parent2'),
+                    y1 = py1(d, view, 'parent2');
+                    points[0] = x1 + ',' + y1;
 
-                    points[1] = x2 + ',' + y2;
                     return points.join(' ');
                 });
         },

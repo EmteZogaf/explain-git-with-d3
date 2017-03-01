@@ -1,4 +1,4 @@
-define(['historyview', 'controlbox', 'd3'], function (HistoryView, ControlBox, d3) {
+define(['historyview', 'controlbox', 'stagingview', 'd3'], function (HistoryView, ControlBox, StagingView, d3) {
     var prefix = 'ExplainGit',
         openSandBoxes = [],
         open,
@@ -12,7 +12,7 @@ define(['historyview', 'controlbox', 'd3'], function (HistoryView, ControlBox, d
             container = d3.select('#' + containerId),
             playground = container.select('.playground-container'),
             historyView, originView = null,
-            controlBox;
+            controlBox, stagingView;
 
         container.style('display', 'block');
 
@@ -23,23 +23,27 @@ define(['historyview', 'controlbox', 'd3'], function (HistoryView, ControlBox, d
             originView = new HistoryView({
                 name: name + '-Origin',
                 width: 300,
-                height: 225,
+                height: '40%',
                 commitRadius: 15,
                 remoteName: 'origin',
-                commitData: args.originData
+                commitData: []
             });
 
             originView.render(playground);
         }
 
+        stagingView = new StagingView();
+
         controlBox = new ControlBox({
             historyView: historyView,
             originView: originView,
+            stagingView: stagingView,
             initialMessage: args.initialMessage
         });
 
         controlBox.render(playground);
         historyView.render(playground);
+        stagingView.render(playground);
 
         openSandBoxes.push({
             hv: historyView,

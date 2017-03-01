@@ -296,13 +296,25 @@
             markerWidth="4" markerHeight="3" orient="auto" viewBox="0 0 10 10">
         <path d="M 0 0 L 10 5 L 0 10 z"/>
     </marker>
+    <marker id="triangle-forward" refX="5" refY="5" markerUnits="strokeWidth" fill="#666"
+            markerWidth="4" markerHeight="3" orient="auto" viewBox="0 0 10 10">
+        <path d="M 10 0 L 0 5 L 10 10 z"/>
+    </marker>
     <marker id="faded-triangle" refX="5" refY="5" markerUnits="strokeWidth" fill="#DDD"
             markerWidth="4" markerHeight="3" orient="auto" viewBox="0 0 10 10">
         <path d="M 0 0 L 10 5 L 0 10 z"/>
     </marker>
+    <marker id="faded-triangle-forward" refX="5" refY="5" markerUnits="strokeWidth" fill="#DDD"
+            markerWidth="4" markerHeight="3" orient="auto" viewBox="0 0 10 10">
+        <path d="M 10 0 L 0 5 L 10 10 z"/>
+    </marker>
     <marker id="brown-triangle" refX="5" refY="5" markerUnits="strokeWidth" fill="#663300"
             markerWidth="4" markerHeight="3" orient="auto" viewBox="0 0 10 10">
         <path d="M 0 0 L 10 5 L 0 10 z"/>
+    </marker>
+    <marker id="brown-triangle-forward" refX="5" refY="5" markerUnits="strokeWidth" fill="#663300"
+            markerWidth="4" markerHeight="3" orient="auto" viewBox="0 0 10 10">
+        <path d="M 10 0 L 0 5 L 10 10 z"/>
     </marker>
 </svg>
 
@@ -523,12 +535,12 @@ require(['explaingit'], function (explainGit) {
 
     window.addEventListener('hashchange', open, false);
     window.addEventListener('load', open, false);
-    
+
     function open() {
         var hash = window.location.hash.substr(1),
             linkId = 'open-' + hash,
             example = examples[hash];
-        
+
         if (example) {
             explainGit.reset();
             document.getElementById(linkId).classList.add('selected');
@@ -540,7 +552,7 @@ require(['explaingit'], function (explainGit) {
               elements[i].style.display = 'none';
             }
             document.getElementById('fork-me').style.display = 'none';
-            
+
             explainGit.reset();
 
             explainGit.open({

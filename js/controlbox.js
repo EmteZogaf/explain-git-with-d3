@@ -1,4 +1,4 @@
-define(['d3'], function () {
+define(['historyview', 'd3'], function (HistoryView) {
     "use strict";
 
     /**
@@ -8,6 +8,7 @@ define(['d3'], function () {
     function ControlBox(config) {
         this.historyView = config.historyView;
         this.originView = config.originView;
+        this.stagingView = config.stagingView;
         this.initialMessage = config.initialMessage || 'Enter git commands below.';
         this._commandHistory = [];
         this._currentCommand = -1;
@@ -143,6 +144,10 @@ define(['d3'], function () {
             this._scrollToBottom();
         },
 
+        add: function (args) {
+            this.stagingView.add(args);
+        },
+
         commit: function (args) {
             if (args.length >= 2) {
                 var arg = args.shift();
@@ -159,6 +164,7 @@ define(['d3'], function () {
             } else {
                 this.historyView.commit();
             }
+            this.stagingView.reset();
         },
 
         branch: function (args) {
@@ -239,7 +245,7 @@ define(['d3'], function () {
 
                 return;
             }
-            
+
             while (args.length > 0) {
                 var arg = args.shift();
 
@@ -259,27 +265,24 @@ define(['d3'], function () {
 
                 switch (arg) {
                 case '--soft':
-                    this.info(
-                        'The "--soft" flag works in real git, but ' +
-                        'I am unable to show you how it works in this demo. ' +
-                        'So I am just going to show you what "--hard" looks like instead.'
-                    );
+                    this.historyView.reset(args.join(' '));
+                    args.length = 0;
                     break;
                 case '--mixed':
-                    this.info(
-                        'The "--mixed" flag works in real git, but ' +
-                        'I am unable to show you how it works in this demo.'
-                    );
+                    this.historyView.reset(args.join(' '));
+                    this.stagingView.reset();
+                    args.length = 0;
                     break;
                 case '--hard':
                     this.historyView.reset(args.join(' '));
+                    this.stagingView.reset();
                     args.length = 0;
                     break;
                 default:
                     var remainingArgs = [arg].concat(args);
-                    args.length = 0;
-                    this.info('Assuming "--hard".');
                     this.historyView.reset(remainingArgs.join(' '));
+                    this.stagingView.reset();
+                    args.length = 0;
                 }
             }
         },
@@ -502,6 +505,52 @@ define(['d3'], function () {
                 remote.renderCommits();
             } else {
                 this.info('Sorry, creating new remote branches is not supported yet.');
+            }
+        },
+
+        remote: function(args) {
+            if (args.length > 0) {
+                var subcommand = args.shift();
+                switch (subcommand) {
+                case 'add':
+                    if (args.length == 2) {
+                        if (/^[\w-_]+$/.test(args[0])) {
+                            this[args[0] + 'View'] = new HistoryView({
+                                name: name + '-Origin',
+                                width: 300,
+                                height: 225,
+                                commitRadius: 15,
+                                remoteName: args[0],
+                                commitData: [{id:this.historyView.commitData[0].id, tags: ["master"], message: this.historyView.commitData[0].message}]
+                            });
+                            this[args[0] + 'View'].render(d3.select(this.container.node().parentNode));
+                        } else {
+                            throw new Error("The remote name '" + args[0]
+                                + "' contains illegal characters.")
+                        }
+                    } else {
+                        throw new Error('The subcommand "add" needs exactly 2 '
+                                + 'arguments, the name and url of the remote '
+                                + 'to add.');
+                    }
+                    break;
+                case 'rm':
+                    if (args.length == 1) {
+                        if (this[args[0] + 'View'] && this[args[0] + 'View'].remoteName == args[0]) {
+                            this.originView.destroy();
+                            this.originView = null;
+                        } else {
+                            throw new Error('There is no remote named "'
+                                    + args[0] + '".');
+                        }
+                    }
+                    break;
+                default:
+                    throw new Error('Sorry, I don\'t understand the subcommand "'
+                            + subcommand + '".')
+                }
+            } else {
+                throw new Error('The remote command needs a subcommand, either "add" or "rm".')
             }
         },
 
